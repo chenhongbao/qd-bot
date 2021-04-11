@@ -6,9 +6,7 @@ import org.quantdirect.bot.tool.TOOLS;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -19,6 +17,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     private final Lock lck;
     private final Condition cond;
     private final String[] args;
+    private final ExecutorService es;
 
     CtpMarketSpi(CtpMarket market, String[] arguments) {
         args = arguments;
@@ -26,6 +25,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         ml = new ConcurrentLinkedQueue<>();
         lck = new ReentrantLock();
         cond = lck.newCondition();
+        es = Executors.newCachedThreadPool();
     }
 
     void addListener(MarketListener listener) {
@@ -35,72 +35,82 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     }
 
     void callInit() {
-        ml.stream().parallel().forEach(l -> {
-            try {
-                l.onInit(args);
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
+        es.submit(() -> {
+            ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(throwable);
-                } catch (Throwable ignored) {
+                    l.onInit(args);
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                    try {
+                        l.onError(throwable);
+                    } catch (Throwable ignored) {
+                    }
                 }
-            }
+            });
         });
     }
 
     private void callLogin(Market market) {
-        ml.stream().parallel().forEach(l -> {
-            try {
-                l.onLogin(market);
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
+        es.submit(() -> {
+            ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(throwable);
-                } catch (Throwable ignored) {
+                    l.onLogin(market);
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                    try {
+                        l.onError(throwable);
+                    } catch (Throwable ignored) {
+                    }
                 }
-            }
+            });
         });
     }
 
     private void callDisconnect(int reason) {
-        ml.stream().parallel().forEach(l -> {
-            try {
-                l.onDisconnected(reason);
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
+        es.submit(() -> {
+            ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(throwable);
-                } catch (Throwable ignored) {
+                    l.onDisconnected(reason);
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                    try {
+                        l.onError(throwable);
+                    } catch (Throwable ignored) {
+                    }
                 }
-            }
+            });
         });
     }
 
     private void callTick(CThostFtdcDepthMarketDataField pDepthMarketData) {
-        ml.stream().parallel().forEach(l -> {
-            try {
-                l.onTick(toTick(pDepthMarketData));
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
+        es.submit(() -> {
+            ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(throwable);
-                } catch (Throwable ignored) {
+                    l.onTick(toTick(pDepthMarketData));
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                    try {
+                        l.onError(throwable);
+                    } catch (Throwable ignored) {
+                    }
                 }
-            }
+            });
         });
     }
 
     private void callError(CThostFtdcRspInfoField pRspInfo) {
-        ml.stream().parallel().forEach(l -> {
-            try {
-                l.onError(new Error("[" + pRspInfo.getErrorID() + "]" + pRspInfo.getErrorMsg()));
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
+        es.submit(() -> {
+            ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(throwable);
-                } catch (Throwable ignored) {
+                    l.onError(new Error("[" + pRspInfo.getErrorID() + "]" + pRspInfo.getErrorMsg()));
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                    try {
+                        l.onError(throwable);
+                    } catch (Throwable ignored) {
+                    }
                 }
-            }
+            });
         });
     }
 

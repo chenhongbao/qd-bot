@@ -23,9 +23,9 @@ class CtpTraderFlags {
     static String stringifyDirection(char direction) {
         switch (direction) {
             case THOST_FTDC_D_Buy:
-                return "buy";
+                return "Buy";
             case THOST_FTDC_D_Sell:
-                return "sell";
+                return "Sell";
             default:
                 throw new Error("Illegal direction: " + direction + ".");
         }
@@ -34,13 +34,13 @@ class CtpTraderFlags {
     static String stringifyOffset(char offset) {
         switch (offset) {
             case THOST_FTDC_OF_Open:
-                return "open";
+                return "Open";
             case THOST_FTDC_OF_Close:
-                return "close";
+                return "Close";
             case THOST_FTDC_OF_CloseToday:
-                return "close_today";
+                return "CloseToday";
             case THOST_FTDC_OF_CloseYesterday:
-                return "close_yesterday";
+                return "CloseYesterday";
             default:
                 throw new Error("Illegal offset: " + offset + ".");
         }
@@ -49,17 +49,17 @@ class CtpTraderFlags {
     static String stringifyOrderStatus(char status) {
         switch (status) {
             case THOST_FTDC_OST_AllTraded:
-                return "all_traded";
+                return "AllTraded";
             case THOST_FTDC_OST_PartTradedQueueing:
-                return "part_tarded_queueing";
+                return "PartTradedQueueing";
             case THOST_FTDC_OST_PartTradedNotQueueing:
-                return "part_traded_not_queueing";
+                return "PartTradedNotQueueing";
             case THOST_FTDC_OST_NoTradeQueueing:
-                return "no_trade_queueing";
+                return "NoTradeQueueing";
             case THOST_FTDC_OST_NoTradeNotQueueing:
-                return "no_trade_not_queueing";
+                return "NoTradeNotQueueing";
             case THOST_FTDC_OST_Canceled:
-                return "canceled";
+                return "Canceled";
             default:
                 throw new Error("Illegal order status: " + status + ".");
         }

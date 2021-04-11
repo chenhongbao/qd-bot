@@ -6,9 +6,7 @@ import org.quantdirect.bot.tool.TOOLS;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -19,6 +17,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     private final CtpTrader t;
     private final Lock lck;
     private final Condition cond;
+    private final ExecutorService es;
     private boolean valid;
     private int ref;
 
@@ -29,6 +28,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         lck = new ReentrantLock();
         cond = lck.newCondition();
         listeners = new ConcurrentHashMap<>();
+        es = Executors.newCachedThreadPool();
     }
 
     String nextReference(TradeListener listener) {
@@ -41,13 +41,15 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     private void callOrder(Order order) {
         var l = listeners.get(order.getReference());
         if (l != null) {
-            try {
-                l.onOrder(order);
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
-            } finally {
-                tryClearListener(order);
-            }
+            es.submit(() -> {
+                try {
+                    l.onOrder(order);
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                } finally {
+                    tryClearListener(order);
+                }
+            });
         } else {
             TOOLS.log("No listener for order " + order.getReference() + ".", this);
         }
@@ -111,11 +113,13 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     private void callTrade(Trade trade) {
         var l = listeners.get(trade.getReference());
         if (l != null) {
-            try {
-                l.onTrade(trade);
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
-            }
+            es.submit(() -> {
+                try {
+                    l.onTrade(trade);
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                }
+            });
         } else {
             TOOLS.log("No listener for order " + trade.getReference() + ".", this);
         }
