@@ -1,0 +1,11 @@
+{
+  "broker_id" : "",
+  "user_id" : "",
+  "password" : "",
+  "app_id" : "",
+  "auth_code" : "",
+  "fronts" : [
+    "tcp://127.0.0.1:5555",
+    "tcp://127.0.0.1:5556"
+  ]
+}
