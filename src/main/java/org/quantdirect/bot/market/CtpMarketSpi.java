@@ -82,11 +82,11 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         });
     }
 
-    private void callTick(CThostFtdcDepthMarketDataField pDepthMarketData) {
+    private void callTick(Tick tick) {
         es.submit(() -> {
             ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onTick(toTick(pDepthMarketData));
+                    l.onTick(tick);
                 } catch (Throwable throwable) {
                     TOOLS.log(throwable, this);
                     try {
@@ -98,11 +98,11 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         });
     }
 
-    private void callError(CThostFtdcRspInfoField pRspInfo) {
+    private void callError(int errorId, String errorMsg) {
         es.submit(() -> {
             ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(new Error("[" + pRspInfo.getErrorID() + "]" + pRspInfo.getErrorMsg()));
+                    l.onError(new Error("[" + errorId + "]" + errorMsg));
                 } catch (Throwable throwable) {
                     TOOLS.log(throwable, this);
                     try {
@@ -132,7 +132,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Login failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
-            callError(pRspInfo);
+            callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
         } else {
             wakeStartup();
             m.setTradingDay(TOOLS.toTradingDay(pRspUserLogin.getTradingDay()));
@@ -145,7 +145,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
             boolean bIsLast) {
         TOOLS.log("Error(" + pRspInfo.getErrorID() + "), " +
                   pRspInfo.getErrorMsg() + ".", this);
-        callError(pRspInfo);
+        callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
     }
 
     @Override
@@ -154,13 +154,13 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Subscription failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
-            callError(pRspInfo);
+            callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
         }
     }
 
     @Override
     public void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField pDepthMarketData) {
-        callTick(pDepthMarketData);
+        callTick(toTick(pDepthMarketData));
     }
 
     private Tick toTick(CThostFtdcDepthMarketDataField pDepthMarketData) {

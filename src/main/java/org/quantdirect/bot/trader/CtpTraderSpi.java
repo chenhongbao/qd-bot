@@ -197,8 +197,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
 
     @Override
     public void OnRtnOrder(CThostFtdcOrderField pOrder) {
-        var o = createCommonOrder(pOrder);
-        callOrder(o);
+        callOrder(createCommonOrder(pOrder));
     }
 
     @Override
