@@ -19,8 +19,13 @@ public class TOOLS {
     private final static DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("yyyyMMdd");
     private final static DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    public static JSON json() {
-        return new JSON();
+    private static JSON json;
+
+    public synchronized static JSON json() {
+        if (json == null) {
+            json = new JSON();
+        }
+        return json;
     }
 
     public static int nextRequestId() {
