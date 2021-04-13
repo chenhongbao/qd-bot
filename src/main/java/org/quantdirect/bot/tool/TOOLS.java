@@ -3,8 +3,10 @@ package org.quantdirect.bot.tool;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -149,8 +151,18 @@ public class TOOLS {
             }
         }
 
+        public Object from(File json, Type type) throws IOException {
+            try (FileReader fr = new FileReader(json)) {
+                return gson.fromJson(fr, type);
+            }
+        }
+
         public <T> T from(String json, Class<T> clazz) throws IOException {
             return gson.fromJson(json, clazz);
+        }
+
+        public Object from(String json, Type type) throws IOException {
+            return gson.fromJson(json, type);
         }
 
         public String to(Object o) {
