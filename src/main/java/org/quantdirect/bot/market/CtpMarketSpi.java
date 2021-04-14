@@ -208,12 +208,12 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
          * to time line order.
          */
         t.setTimeStamp(LocalDateTime.now());
-        t.setTickId(toTickId(t.getTimeStamp()));
+        t.setTickId(toTickId(t, t.getTimeStamp()));
         return t;
     }
 
-    private String toTickId(LocalDateTime updateTime) {
-        return Long.toString(updateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli());
+    private String toTickId(Tick self, LocalDateTime updateTime) {
+        return Long.toString(updateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli()) + self.hashCode();
     }
 
     void joinStartup(int timeout, TimeUnit unit) throws TimeoutException {
