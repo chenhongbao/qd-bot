@@ -6,6 +6,7 @@ import org.quantdirect.bot.tool.TOOLS;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -15,23 +16,33 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     private final CtpMarket m;
     private final Queue<MarketListener> ml;
     private final Lock lck;
+    private final Lock subsLck;
     private final Condition cond;
+    private final Condition subsCond;
     private final String[] args;
     private final ExecutorService es;
+    private final Set<String> subs;
 
     CtpMarketSpi(CtpMarket market, String[] arguments) {
         args = arguments;
         m = market;
         ml = new ConcurrentLinkedQueue<>();
         lck = new ReentrantLock();
+        subsLck = new ReentrantLock();
         cond = lck.newCondition();
+        subsCond = subsLck.newCondition();
         es = Executors.newCachedThreadPool();
+        subs = new ConcurrentSkipListSet<>();
     }
 
     void addListener(MarketListener listener) {
         if (listener != null) {
             ml.add(listener);
         }
+    }
+
+    void removeSubscribed(String instrumentId) {
+        subs.remove(instrumentId);
     }
 
     void callInit() {
@@ -155,6 +166,8 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
             TOOLS.log("Subscription failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
             callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
+        } else {
+            wakeSubscription(pSpecificInstrument.getInstrumentID());
         }
     }
 
@@ -219,9 +232,34 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     private void wakeStartup() {
         lck.lock();
         try {
-            cond.signal();
+            cond.signalAll();
         } finally {
             lck.unlock();
+        }
+    }
+
+    void joinSubscription(String instrumentId) {
+        subsLck.lock();
+        try {
+            while (!subs.contains(instrumentId)) {
+                try {
+                    subsCond.await();
+                } catch (InterruptedException e) {
+                    TOOLS.log(e, this);
+                }
+            }
+        } finally {
+            subsLck.unlock();
+        }
+    }
+
+    void wakeSubscription(String instrumentId) {
+        subs.add(instrumentId);
+        subsLck.lock();
+        try {
+            subsCond.signalAll();
+        } finally {
+            subsLck.unlock();
         }
     }
 }

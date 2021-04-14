@@ -64,6 +64,9 @@ class CtpMarket extends Market {
             TOOLS.log("Subscription returns " + r + ".", this);
             throw new Error("Subscription returns " + r + ".");
         }
+        for (var i : instrumentId) {
+            spi.joinSubscription(i);
+        }
     }
 
     @Override
