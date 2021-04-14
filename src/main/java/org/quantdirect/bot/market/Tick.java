@@ -20,6 +20,7 @@ package org.quantdirect.bot.market;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class Tick implements Serializable {
     private String tickId;
@@ -37,15 +38,42 @@ public class Tick implements Serializable {
     private double bidPrice;
     private long askVolume;
     private long bidVolume;
+    private double averagePrice;
     private double upperLimitPrice;
     private double lowerLimitPrice;
     private long totalVolume;
     private long openInterest;
     private long preOpenInterest;
     private LocalDate tradingDay;
-    private LocalDateTime updateTime;
+    private LocalDate actionDay;
+    private LocalTime updateTime;
+    private LocalDateTime timeStamp;
 
     public Tick() {
+    }
+
+    public LocalDate getActionDay() {
+        return actionDay;
+    }
+
+    public void setActionDay(LocalDate actionDay) {
+        this.actionDay = actionDay;
+    }
+
+    public LocalTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public double getAveragePrice() {
+        return averagePrice;
+    }
+
+    public void setAveragePrice(double averagePrice) {
+        this.averagePrice = averagePrice;
     }
 
     public double getLastPrice() {
@@ -216,11 +244,11 @@ public class Tick implements Serializable {
         this.tradingDay = tradingDay;
     }
 
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
+    public LocalDateTime getTimeStamp() {
+        return timeStamp;
     }
 
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
+    public void setTimeStamp(LocalDateTime timeStamp) {
+        this.timeStamp = timeStamp;
     }
 }

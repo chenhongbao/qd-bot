@@ -71,8 +71,8 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         o.setTradedQuantity(pOrder.getVolumeTraded());
         o.setStatus(CtpTraderFlags.stringifyOrderStatus(pOrder.getOrderStatus()));
         o.setStatusMessage(pOrder.getStatusMsg());
-        o.setTradingDay(TOOLS.toTradingDay(pOrder.getTradingDay()));
-        o.setUpdateTime(TOOLS.toUpdateTime(pOrder.getInsertDate(), pOrder.getUpdateTime(), 0));
+        o.setTradingDay(TOOLS.toDay(pOrder.getTradingDay()));
+        o.setUpdateTime(TOOLS.toTimeStamp(pOrder.getInsertDate(), pOrder.getUpdateTime(), 0));
         return o;
     }
 
@@ -100,8 +100,8 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         t.setOffset(CtpTraderFlags.stringifyOffset(pTrade.getOffsetFlag()));
         t.setPrice(pTrade.getPrice());
         t.setQuantity(pTrade.getVolume());
-        t.setTradingDay(TOOLS.toTradingDay(pTrade.getTradingDay()));
-        t.setUpdateTime(TOOLS.toUpdateTime(pTrade.getTradeDate(), pTrade.getTradeTime(), 0));
+        t.setTradingDay(TOOLS.toDay(pTrade.getTradingDay()));
+        t.setUpdateTime(TOOLS.toTimeStamp(pTrade.getTradeDate(), pTrade.getTradeTime(), 0));
         t.setTradeId(toTradeId(t.getUpdateTime()));
         return t;
     }
@@ -159,7 +159,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
             } catch (NumberFormatException e) {
                 TOOLS.log(e, this);
             }
-            t.setTradingDay(TOOLS.toTradingDay(pRspUserLogin.getTradingDay()));
+            t.setTradingDay(TOOLS.toDay(pRspUserLogin.getTradingDay()));
             t.confirmSettlement();
         }
     }

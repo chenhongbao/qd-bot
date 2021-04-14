@@ -135,7 +135,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
             callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
         } else {
             wakeStartup();
-            m.setTradingDay(TOOLS.toTradingDay(pRspUserLogin.getTradingDay()));
+            m.setTradingDay(TOOLS.toDay(pRspUserLogin.getTradingDay()));
             callLogin(m);
         }
     }
@@ -179,14 +179,23 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         t.setPreSettlePrice(pDepthMarketData.getPreSettlementPrice());
         t.setUpperLimitPrice(pDepthMarketData.getUpperLimitPrice());
         t.setLowerLimitPrice(pDepthMarketData.getLowerLimitPrice());
+        t.setAveragePrice(pDepthMarketData.getAveragePrice());
         t.setExchangeId(pDepthMarketData.getExchangeID());
         t.setInstrumentId(pDepthMarketData.getInstrumentID());
         t.setTotalVolume(pDepthMarketData.getVolume());
         t.setOpenInterest((long) pDepthMarketData.getOpenInterest());
         t.setPreOpenInterest((long) pDepthMarketData.getPreOpenInterest());
-        t.setTradingDay(TOOLS.toTradingDay(pDepthMarketData.getTradingDay()));
-        t.setUpdateTime(TOOLS.toUpdateTime(pDepthMarketData.getActionDay(), pDepthMarketData.getUpdateTime(), pDepthMarketData.getUpdateMillisec()));
-        t.setTickId(toTickId(t.getUpdateTime()));
+        t.setTradingDay(TOOLS.toDay(pDepthMarketData.getTradingDay()));
+        t.setActionDay(TOOLS.toDay(pDepthMarketData.getActionDay()));
+        t.setUpdateTime(TOOLS.toTime(pDepthMarketData.getUpdateTime(), pDepthMarketData.getUpdateMillisec()));
+        /*
+         * Because action day from different exchanges has different meanings, that
+         * some are natural day while the others are trading day (next day if it is night
+         * session), here set it to the current time stamp so the ticks can be sorted
+         * to time line order.
+         */
+        t.setTimeStamp(LocalDateTime.now());
+        t.setTickId(toTickId(t.getTimeStamp()));
         return t;
     }
 

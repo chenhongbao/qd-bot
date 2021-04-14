@@ -62,7 +62,7 @@ public class TOOLS {
         }
     }
 
-    public static LocalDate toTradingDay(String tradingDay) {
+    public static LocalDate toDay(String tradingDay) {
         try {
             return LocalDate.parse(tradingDay, dayFmt);
         } catch (Throwable throwable) {
@@ -71,16 +71,26 @@ public class TOOLS {
         }
     }
 
-    public static String toTradingDay(LocalDate tradingDay) {
+    public static String toDay(LocalDate tradingDay) {
         return tradingDay.format(dayFmt);
     }
 
-    public static LocalDateTime toUpdateTime(String actionDay, String updateTime, int updateMillisec) {
+    public static LocalDateTime toTimeStamp(String actionDay, String updateTime, int updateMillisec) {
         try {
             var day = LocalDate.parse(actionDay, dayFmt);
             var time = LocalTime.parse(updateTime, timeFmt);
             var r = LocalDateTime.of(day, time).plus(Duration.ofMillis(updateMillisec));
             return r;
+        } catch (Throwable throwable) {
+            log(throwable, TOOLS.class);
+            return null;
+        }
+    }
+
+    public static LocalTime toTime(String updateTime, int updateMillisec) {
+        try {
+            var time = LocalTime.parse(updateTime, timeFmt);
+            return time.plus(Duration.ofMillis(updateMillisec));
         } catch (Throwable throwable) {
             log(throwable, TOOLS.class);
             return null;
