@@ -16,19 +16,23 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
-public class SinaHqReader {
+public class SinaHqReader extends HqReader {
+    private final static Random rand = new Random();
     private final static DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final static DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final static String dayUrl = "https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var%20{var_name}=/InnerFuturesNewService.getDailyKLine?symbol={symbol}";
     private final static String fewUrl = "https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var%20{var_name}=/InnerFuturesNewService.getFewMinLine?symbol={symbol}&type={few_minutes}";
 
+    @Override
     public List<Candle> read(String instrumentId) {
         var str = httpResponse(instrumentId);
         var json = extractJson(str);
         return parse(json, instrumentId);
     }
 
+    @Override
     public List<Candle> read(String instrumentId, int fewMinutes) {
         var str = httpResponse(instrumentId, fewMinutes);
         var json = extractJson(str);
@@ -92,7 +96,7 @@ public class SinaHqReader {
     }
 
     private String httpResponse(String instrumentId, int fewMinutes) {
-        var url = fewUrl.replace("{var_name}", var(instrumentId))
+        var url = fewUrl.replace("{var_name}", fewVar(instrumentId, fewMinutes))
                         .replace("{symbol}", symbol(instrumentId))
                         .replace("{few_minutes}", Integer.toString(fewMinutes));
         return httpGet(url);
@@ -118,11 +122,15 @@ public class SinaHqReader {
         }
     }
 
-    private CharSequence symbol(String instrumentId) {
+    private String symbol(String instrumentId) {
         return instrumentId.toUpperCase(Locale.ROOT);
     }
 
-    private CharSequence var(String instrumentId) {
+    private String fewVar(String instrumentId, int few) {
+        return "_" + symbol(instrumentId) + "_" + few + "_" + (1618633537208L + rand.nextLong() % 1000);
+    }
+
+    private String var(String instrumentId) {
         var n = LocalDate.now();
         return "_" + symbol(instrumentId) + n.getYear() + "_" + n.getMonthValue() + "_" + n.getDayOfMonth();
     }

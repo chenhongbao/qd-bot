@@ -14,16 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class JsonTest {
 
+    protected final List<SinaHqReader.JsonCandle> cs = new LinkedList<>();
+
     @Test
     public void testJsonArray() {
-        List<SinaHqReader.JsonCandle> cs = new LinkedList<>();
-        var str = readJson("few_minutes.json");
-        assertDoesNotThrow(() -> {
-            var type = new TypeToken<List<SinaHqReader.JsonCandle>>() {
-            }.getType();
-            cs.addAll(TOOLS.json().from(str, type));
-        });
-        assertTrue(cs.size() > 0);
+        loadCandles("few_minutes.json");
         var x = cs.get(cs.size() - 1);
         assertEquals(x.d, "2021-04-16 23:00:00");
         assertEquals(x.o, 2733D);
@@ -34,7 +29,17 @@ class JsonTest {
         assertEquals(x.p, 209356);
     }
 
-    private String readJson(String file) {
+    protected void loadCandles(String file) {
+        var str = readJson(file);
+        assertDoesNotThrow(() -> {
+            var type = new TypeToken<List<SinaHqReader.JsonCandle>>() {
+            }.getType();
+            cs.addAll(TOOLS.json().from(str, type));
+        });
+        assertTrue(cs.size() > 0);
+    }
+
+    protected String readJson(String file) {
         var s = this.getClass().getResourceAsStream(file);
         try (BufferedReader br = new BufferedReader(new InputStreamReader(s))) {
             StringBuffer buf = new StringBuffer();

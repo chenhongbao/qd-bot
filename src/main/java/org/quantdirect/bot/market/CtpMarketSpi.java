@@ -45,6 +45,22 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         subs.remove(instrumentId);
     }
 
+    void callCandle(Candle candle, int fewMinutes, MarketSource source) {
+        es.submit(() -> {
+            ml.stream().parallel().forEach(l -> {
+                try {
+                    l.onCandle(candle, fewMinutes, source);
+                } catch (Throwable throwable) {
+                    TOOLS.log(throwable, this);
+                    try {
+                        l.onError(throwable);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            });
+        });
+    }
+
     void callInit() {
         es.submit(() -> {
             ml.stream().parallel().forEach(l -> {
@@ -110,14 +126,18 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     }
 
     private void callError(int errorId, String errorMsg) {
+        callError(new Error("[" + errorId + "]" + errorMsg));
+    }
+
+    void callError(Throwable throwable) {
         es.submit(() -> {
             ml.stream().parallel().forEach(l -> {
                 try {
-                    l.onError(new Error("[" + errorId + "]" + errorMsg));
-                } catch (Throwable throwable) {
-                    TOOLS.log(throwable, this);
+                    l.onError(throwable);
+                } catch (Throwable ex) {
+                    TOOLS.log(ex, this);
                     try {
-                        l.onError(throwable);
+                        l.onError(ex);
                     } catch (Throwable ignored) {
                     }
                 }

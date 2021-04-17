@@ -1,13 +1,16 @@
 package org.quantdirect.bot.market;
 
 import org.ctp4j.*;
+import org.quantdirect.bot.market.sinahq.CandleListener;
+import org.quantdirect.bot.market.sinahq.HqMonitor;
 import org.quantdirect.bot.tool.CtpMarketConfiguration;
 import org.quantdirect.bot.tool.TOOLS;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -16,6 +19,8 @@ class CtpMarket extends Market {
     private final CtpMarketConfiguration cfg;
     private final CThostFtdcMdApi api;
     private final CtpMarketSpi spi;
+    private final Map<String, HqMonitor> monitors;
+    private final CandleListener defaultCndListener;
     private LocalDate tradingDay;
 
     CtpMarket(String flowPath, boolean udp, boolean multicast, MarketListener listener, String[] args) throws TimeoutException, IOException {
@@ -25,6 +30,8 @@ class CtpMarket extends Market {
         spi = new CtpMarketSpi(this, args);
         spi.addListener(listener);
         spi.callInit();
+        monitors = new ConcurrentHashMap<>();
+        defaultCndListener = new ParentCandleListener(spi);
         refresh();
     }
 
@@ -59,6 +66,28 @@ class CtpMarket extends Market {
 
     @Override
     public void subscribe(String... instrumentId) {
+        removeSubs(instrumentId);
+        subscribeCandle(instrumentId);
+        subscribeTick(instrumentId);
+    }
+
+    private void removeSubs(String[] instrumentId) {
+        for (var i : instrumentId) {
+            spi.removeSubscribed(i);
+        }
+    }
+
+    private void subscribeCandle(String[] instrumentId) {
+        for (var i : instrumentId) {
+            if (monitors.containsKey(i)) {
+                continue;
+            }
+            var m = new HqMonitor(i, 1, TimeUnit.SECONDS, defaultCndListener);
+            monitors.put(i, m);
+        }
+    }
+
+    private void subscribeTick(String[] instrumentId) {
         var r = api.SubscribeMarketData(instrumentId, instrumentId.length);
         if (r != 0) {
             TOOLS.log("Subscription returns " + r + ".", this);
