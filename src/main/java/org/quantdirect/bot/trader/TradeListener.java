@@ -1,10 +1,7 @@
 package org.quantdirect.bot.trader;
 
-import org.quantdirect.bot.trader.Order;
-import org.quantdirect.bot.trader.Trade;
+public abstract class TradeListener {
+    public void onOrder(Order order) {}
 
-public interface TradeListener {
-    void onOrder(Order order);
-
-    void onTrade(Trade trade);
+    public void onTrade(Trade trade) {}
 }

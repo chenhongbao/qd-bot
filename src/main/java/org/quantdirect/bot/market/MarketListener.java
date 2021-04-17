@@ -1,16 +1,15 @@
 package org.quantdirect.bot.market;
 
-import org.quantdirect.bot.market.Market;
-import org.quantdirect.bot.market.Tick;
+public abstract class MarketListener {
+    public void onTick(Tick tick) {}
 
-public interface MarketListener {
-    void onTick(Tick tick);
+    public void onCandle(Candle candle){}
 
-    void onLogin(Market market);
+    public void onLogin(Market market) {}
 
-    void onDisconnected(int reason);
+    public void onDisconnected(int reason) {}
 
-    void onError(Throwable throwable);
+    public void onError(Throwable throwable) {}
 
-    void onInit(String[] args);
+    public void onInit(String[] args) {}
 }
