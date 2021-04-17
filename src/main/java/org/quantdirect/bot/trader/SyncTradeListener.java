@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class SyncTradeListener implements TradeListener {
+class SyncTradeListener extends TradeListener {
 
     private final Stack<Order> orders;
     private final Lock lock;

@@ -7,23 +7,31 @@ import org.quantdirect.bot.tool.TOOLS;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 class JsonTest {
 
     @Test
     public void testJsonArray() {
+        List<SinaHqReader.JsonCandle> cs = new LinkedList<>();
         var str = readJson("few_minutes.json");
-        try {
-            var cs = (List<SinaHqReader.JsonCandle>)TOOLS.json().from(str, new TypeToken<List<SinaHqReader.JsonCandle>>(){}.getType());
-            for (var a : cs) {
-                System.out.println(a.d + ": " + a.c);
-            }
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertDoesNotThrow(() -> {
+            var type = new TypeToken<List<SinaHqReader.JsonCandle>>() {
+            }.getType();
+            cs.addAll(TOOLS.json().from(str, type));
+        });
+        assertTrue(cs.size() > 0);
+        var x = cs.get(cs.size() - 1);
+        assertEquals(x.d, "2021-04-16 23:00:00");
+        assertEquals(x.o, 2733D);
+        assertEquals(x.h, 2738D);
+        assertEquals(x.l, 2733D);
+        assertEquals(x.c, 2738D);
+        assertEquals(x.v, 2740);
+        assertEquals(x.p, 209356);
     }
 
     private String readJson(String file) {
