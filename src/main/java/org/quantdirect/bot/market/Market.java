@@ -22,6 +22,8 @@ public abstract class Market {
 
     public abstract void subscribe(String... instrumentId);
 
+    public abstract void subscribeCandle(String... instrumentId);
+
     public abstract void join();
 
     public abstract LocalDate getTradingDay();

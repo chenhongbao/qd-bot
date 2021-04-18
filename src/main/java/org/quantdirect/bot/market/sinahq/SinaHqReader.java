@@ -12,6 +12,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,29 +30,28 @@ public class SinaHqReader extends HqReader {
     public List<Candle> read(String instrumentId) {
         var str = httpResponse(instrumentId);
         var json = extractJson(str);
-        return parse(json, instrumentId);
+        return parse(json, instrumentId, true);
     }
 
     @Override
     public List<Candle> read(String instrumentId, int fewMinutes) {
         var str = httpResponse(instrumentId, fewMinutes);
         var json = extractJson(str);
-        return parse(json, instrumentId);
+        return parse(json, instrumentId, false);
     }
 
     private String extractJson(String str) {
-        var i = str.indexOf(":");
-        if (i == -1) {
-            return str.trim();
-        } else if (!str.endsWith("=")){
-            return str.substring(str.indexOf("=") + 1).trim();
+        var i = str.indexOf("[");
+        var i2 = str.lastIndexOf("]");
+        if (i == -1 || i2 == -1) {
+            throw new Error("No JSON array.");
         } else {
-            return "";
+            return str.substring(i, i2+ 1);
         }
     }
 
-    private List<Candle> parse(String json, String instrumentId) {
-        var r = parseResponse(json, false);
+    private List<Candle> parse(String json, String instrumentId, boolean isDay) {
+        var r = parseResponse(json, isDay);
         r.forEach(c -> {
             c.setInstrumentId(instrumentId);
         });
@@ -89,7 +89,8 @@ public class SinaHqReader extends HqReader {
             return null;
         }
         if (isDay) {
-            return LocalDateTime.parse(d, dayFmt);
+            var day =  LocalDate.parse(d, dayFmt);
+            return LocalDateTime.of(day, LocalTime.of(0, 0));
         } else {
             return LocalDateTime.parse(d, timeFmt);
         }

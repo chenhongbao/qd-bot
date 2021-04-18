@@ -67,23 +67,13 @@ class CtpMarket extends Market {
     @Override
     public void subscribe(String... instrumentId) {
         removeSubs(instrumentId);
-        subscribeCandle(instrumentId);
         subscribeTick(instrumentId);
     }
+
 
     private void removeSubs(String[] instrumentId) {
         for (var i : instrumentId) {
             spi.removeSubscribed(i);
-        }
-    }
-
-    private void subscribeCandle(String[] instrumentId) {
-        for (var i : instrumentId) {
-            if (monitors.containsKey(i)) {
-                continue;
-            }
-            var m = new HqMonitor(i, 1, TimeUnit.SECONDS, defaultCndListener);
-            monitors.put(i, m);
         }
     }
 
@@ -95,6 +85,17 @@ class CtpMarket extends Market {
         }
         for (var i : instrumentId) {
             spi.joinSubscription(i);
+        }
+    }
+
+    @Override
+    public void subscribeCandle(String... instrumentId) {
+        for (var i : instrumentId) {
+            if (monitors.containsKey(i)) {
+                continue;
+            }
+            var m = new HqMonitor(i, 1, TimeUnit.SECONDS, defaultCndListener);
+            monitors.put(i, m);
         }
     }
 

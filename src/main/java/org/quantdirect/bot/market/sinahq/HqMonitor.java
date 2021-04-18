@@ -129,7 +129,7 @@ public class HqMonitor implements Runnable {
                 }
             }
         }
-        if (source == MarketSource.ONLINE && !dif.isEmpty()) {
+        if (!dif.isEmpty()) {
             if (few == 0) {
                 offline.write(dayMerger.getCache(), id);
             } else {

@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 
 public class Candle {
     private String instrumentId;
-    private double open;
-    private double high;
-    private double low;
-    private double close;
-    private long volume;
-    private long position;
+    private Double open;
+    private Double high;
+    private Double low;
+    private Double close;
+    private Long volume;
+    private Long position;
     private LocalDateTime time;
 
     public Candle() {
@@ -23,51 +23,51 @@ public class Candle {
         this.instrumentId = instrumentId;
     }
 
-    public double getOpen() {
+    public Double getOpen() {
         return open;
     }
 
-    public void setOpen(double open) {
+    public void setOpen(Double open) {
         this.open = open;
     }
 
-    public double getHigh() {
+    public Double getHigh() {
         return high;
     }
 
-    public void setHigh(double high) {
+    public void setHigh(Double high) {
         this.high = high;
     }
 
-    public double getLow() {
+    public Double getLow() {
         return low;
     }
 
-    public void setLow(double low) {
+    public void setLow(Double low) {
         this.low = low;
     }
 
-    public double getClose() {
+    public Double getClose() {
         return close;
     }
 
-    public void setClose(double close) {
+    public void setClose(Double close) {
         this.close = close;
     }
 
-    public long getVolume() {
+    public Long getVolume() {
         return volume;
     }
 
-    public void setVolume(long volume) {
+    public void setVolume(Long volume) {
         this.volume = volume;
     }
 
-    public long getPosition() {
+    public Long getPosition() {
         return position;
     }
 
-    public void setPosition(long position) {
+    public void setPosition(Long position) {
         this.position = position;
     }
 
