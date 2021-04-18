@@ -1,5 +1,6 @@
 package org.quantdirect.bot.market;
 
+import org.ctp4j.ThostFtdcCtpApi;
 import org.quantdirect.bot.tool.TOOLS;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ public abstract class Market {
 
     public static Market createCtp(String flowPath, boolean udp, boolean multicast, MarketListener listener, String[] args) throws TimeoutException, IOException {
         if (m == null) {
+            ThostFtdcCtpApi.install();
             var path = TOOLS.validateFlowPath(flowPath);
             m = new CtpMarket(path, udp, multicast, listener, args);
         }

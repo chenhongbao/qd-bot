@@ -1,5 +1,6 @@
 package org.quantdirect.bot.trader;
 
+import org.ctp4j.ThostFtdcCtpApi;
 import org.quantdirect.bot.tool.TOOLS;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ public abstract class Trader {
 
     public static synchronized Trader createCtp(String flowPath) throws TimeoutException, IOException {
         if (t == null) {
+            ThostFtdcCtpApi.install();
             var path = TOOLS.validateFlowPath(flowPath);
             t = new CtpTrader(path);
         }
