@@ -1,7 +1,7 @@
 package org.quantdirect.bot.market;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.quantdirect.bot.tool.TOOLS;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -12,49 +12,47 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CtpMarketTest {
 
     @Test
-    @Disabled /* Enable this test only when market is open. */
-    public void testApp() {
+    @DisplayName("Initial Candle Fetch")
+    //@Disabled /* Enable this test only when market is open. */
+    public void testApp() throws IOException, TimeoutException, InterruptedException {
         final String instrumentId = "c2109";
         final CountDownLatch cdl = new CountDownLatch(6);
         final Map<Integer, List<Candle>> candles = new ConcurrentHashMap<>();
-        try {
-            var market = Market.createCtp("market/", true, true, new MarketListener() {
-                @Override
-                public void onCandle(int fewMinutes, MarketSource source, Candle candle, boolean isLast) {
-                    assertEquals(source, MarketSource.OFFLINE);
-                    checkCandle(candle, instrumentId);
-                    synchronized (candles) {
-                        if (isLast) {
-                            cdl.countDown();
-                        }
-                        var p = candles.computeIfAbsent(fewMinutes, k -> new LinkedList<>());
-                        if (!p.isEmpty()) {
-                            // Check sorted.
-                            var pc = p.get(p.size() - 1);
-                            assertTrue(pc.getTime().isBefore(candle.getTime()));
-                        }
-                        p.add(candle);
+        var market = Market.createCtp("market/", true, true, new MarketListener() {
+            @Override
+            public void onCandle(int fewMinutes, MarketSource source, Candle candle, boolean isLast) {
+                assertEquals(source, MarketSource.OFFLINE);
+                checkCandle(candle, instrumentId);
+                synchronized (candles) {
+                    if (isLast) {
+                        cdl.countDown();
                     }
+                    var p = candles.computeIfAbsent(fewMinutes, k -> new LinkedList<>());
+                    if (!p.isEmpty()) {
+                        // Check sorted.
+                        var pc = p.get(p.size() - 1);
+                        assertTrue(pc.getTime().isBefore(candle.getTime()));
+                    }
+                    p.add(candle);
                 }
+            }
 
-                @Override
-                public void onLogin(Market market) {
-                    market.subscribeCandle(instrumentId);
-                }
-            }, new String[]{instrumentId});
-        } catch (TimeoutException | IOException e) {
-            fail(e.getMessage());
-        }
+            @Override
+            public void onLogin(Market market) {
+                market.subscribeCandle(instrumentId);
+            }
+        }, new String[]{instrumentId});
 
-        try {
-            cdl.await(15, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
+        cdl.await(15, TimeUnit.SECONDS);
+        assertTrue(candles.size() == 6);
+        for (var cs : candles.values()) {
+            assertTrue(!cs.isEmpty());
         }
     }
 

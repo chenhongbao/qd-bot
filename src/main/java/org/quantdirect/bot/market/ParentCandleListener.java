@@ -13,7 +13,10 @@ class ParentCandleListener extends CandleListener {
 
     @Override
     public synchronized void onCandle(int fewMinutes, MarketSource source, List<Candle> candles) {
-        spi.callCandle(fewMinutes, source, candles.toArray(new Candle[1]));
+        if (candles.isEmpty()) {
+            return;
+        }
+        spi.callCandle(fewMinutes, source, candles.toArray(new Candle[0]));
     }
 
     @Override
