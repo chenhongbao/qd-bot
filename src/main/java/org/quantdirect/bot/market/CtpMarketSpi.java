@@ -23,6 +23,8 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     private final ExecutorService es;
     private final Set<String> subs;
 
+    private boolean hasError;
+
     CtpMarketSpi(CtpMarket market, String[] arguments) {
         args = arguments;
         m = market;
@@ -33,6 +35,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         subsCond = subsLck.newCondition();
         es = Executors.newCachedThreadPool();
         subs = new ConcurrentSkipListSet<>();
+        hasError = false;
     }
 
     void addListener(MarketListener listener) {
@@ -191,6 +194,8 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
             TOOLS.log("Subscription failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
             callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
+            hasError = true;
+            wakeSubscription("");
         } else {
             wakeSubscription(pSpecificInstrument.getInstrumentID());
         }
@@ -266,7 +271,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     void joinSubscription(String instrumentId) {
         subsLck.lock();
         try {
-            while (!subs.contains(instrumentId)) {
+            while (!subs.contains(instrumentId) && !hasError) {
                 try {
                     subsCond.await();
                 } catch (InterruptedException e) {
@@ -275,6 +280,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
             }
         } finally {
             subsLck.unlock();
+            hasError = false;
         }
     }
 
