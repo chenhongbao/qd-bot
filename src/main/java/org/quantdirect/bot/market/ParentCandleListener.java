@@ -2,6 +2,8 @@ package org.quantdirect.bot.market;
 
 import org.quantdirect.bot.market.sinahq.CandleListener;
 
+import java.util.List;
+
 class ParentCandleListener extends CandleListener {
     private final CtpMarketSpi  spi;
 
@@ -10,8 +12,8 @@ class ParentCandleListener extends CandleListener {
     }
 
     @Override
-    public synchronized void onCandle(Candle candle, int fewMinutes, MarketSource source) {
-        spi.callCandle(candle, fewMinutes, source);
+    public synchronized void onCandle(int fewMinutes, MarketSource source, List<Candle> candles) {
+        spi.callCandle(fewMinutes, source, candles.toArray(new Candle[1]));
     }
 
     @Override

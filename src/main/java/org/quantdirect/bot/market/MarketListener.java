@@ -3,7 +3,7 @@ package org.quantdirect.bot.market;
 public abstract class MarketListener {
     public void onTick(Tick tick) {}
 
-    public void onCandle(Candle candle, int fewMinutes, MarketSource source){}
+    public void onCandle(int fewMinutes, MarketSource source, Candle candle, boolean isLast){}
 
     public void onLogin(Market market) {}
 

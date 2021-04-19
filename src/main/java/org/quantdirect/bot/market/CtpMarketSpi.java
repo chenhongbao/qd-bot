@@ -45,16 +45,21 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         subs.remove(instrumentId);
     }
 
-    void callCandle(Candle candle, int fewMinutes, MarketSource source) {
+    void callCandle(int fewMinutes, MarketSource source, Candle... candles) {
+        if (candles.length == 0) {
+            return;
+        }
         es.submit(() -> {
             ml.stream().parallel().forEach(l -> {
-                try {
-                    l.onCandle(candle, fewMinutes, source);
-                } catch (Throwable throwable) {
-                    TOOLS.log(throwable, this);
+                for (var index = 0; index < candles.length; ++index) {
                     try {
-                        l.onError(throwable);
-                    } catch (Throwable ignored) {
+                        l.onCandle(fewMinutes, source, candles[index], index == candles.length - 1);
+                    } catch (Throwable throwable) {
+                        TOOLS.log(throwable, this);
+                        try {
+                            l.onError(throwable);
+                        } catch (Throwable ignored) {
+                        }
                     }
                 }
             });

@@ -118,15 +118,13 @@ public class HqMonitor implements Runnable {
 
     private void sortAndCall(List<Candle> dif, int few, MarketSource source) {
         dif.sort(Comparator.comparing(Candle::getTime));
-        for (var c : dif) {
+        try {
+            candle.onCandle(few, source, dif);
+        } catch (Throwable throwable) {
+            TOOLS.log(throwable, this);
             try {
-                candle.onCandle(c, few, source);
-            } catch (Throwable throwable) {
-                TOOLS.log(throwable, this);
-                try {
-                    candle.onError(throwable);
-                } catch (Throwable ignored) {
-                }
+                candle.onError(throwable);
+            } catch (Throwable ignored) {
             }
         }
         if (!dif.isEmpty()) {
