@@ -60,26 +60,29 @@ public class TradeKeeper {
         open(tick, Direction.SELL, quantity);
     }
 
-    public synchronized void sc(Tick tick, long quantity) {
+    public synchronized void sc(Tick tick, Direction direction) {
         TOOLS.log("SC/" + TOOLS.formatDouble(tick.getAskPrice()) + "/" +
                   TOOLS.formatDouble(tick.getBidPrice()), this);
-        close(tick, quantity);
+        close(tick, direction);
     }
 
-    public synchronized void bc(Tick tick, long quantity) {
+    public synchronized void bc(Tick tick, Direction direction) {
         TOOLS.log("BC/" + TOOLS.formatDouble(tick.getAskPrice()) + "/" +
                   TOOLS.formatDouble(tick.getBidPrice()), this);
-        close(tick, quantity);
+        close(tick, direction);
     }
 
     private void open(Tick tick, Direction direction, long quantity) {
-        setOpenRecord(tick, direction);
+        setOpenRecord(tick, direction, quantity);
         if (enabled) {
-            tradeOpen(tick, direction, quantity);
+            tradeOpen();
         }
     }
 
-    private void tradeOpen(Tick tick, Direction direction, long quantity) {
+    private void tradeOpen() {
+        var direction = current().direction();
+        var tick = current().open();
+        var quantity = current().quantity();
         if (direction == Direction.BUY) {
             trader.buyOpen(tick.getInstrumentId(), tick.getExchangeId(),
                     tick.getUpperLimitPrice(), (int)quantity, new PrivateTraderListener());
@@ -91,7 +94,7 @@ public class TradeKeeper {
         }
     }
 
-    private void setOpenRecord(Tick tick, Direction direction) {
+    private void setOpenRecord(Tick tick, Direction direction, long quantity) {
         if (!records.isEmpty()) {
             // Check previous trade is finished.
             var r = records.getFirst();
@@ -99,20 +102,22 @@ public class TradeKeeper {
                 throw new Error("Previous trade is not closed yet.");
             }
         }
-        var n = new TradeRecord(direction);
+        var n = new TradeRecord(direction, quantity);
         n.open(tick);
         records.addFirst(n);
         write();
     }
 
-    private void close(Tick tick, long quantity) {
-        setCloseRecord(tick);
+    private void close(Tick tick, Direction direction) {
+        setCloseRecord(tick, direction);
         if (enabled) {
-            tradeClose(tick, quantity);
+            tradeClose();
         }
     }
 
-    private void tradeClose(Tick tick, long quantity) {
+    private void tradeClose() {
+        var tick = current().close();
+        var quantity = current().quantity();
         var d = records.getFirst().direction();
         if (d == Direction.BUY) {
             trader.sellClose(tick.getInstrumentId(), tick.getExchangeId(),
@@ -125,16 +130,19 @@ public class TradeKeeper {
         }
     }
 
-    private void setCloseRecord(Tick tick) {
-        if (records.isEmpty()) {
+    private void setCloseRecord(Tick tick, Direction direction) {
+        if (current() == null) {
             throw new Error("No trade to close.");
         }
-        var n = records.getFirst();
+        var n = current();
         if (n.close() != null) {
             throw new Error("Close the same trade again.");
         }
         if (n.open() == null) {
             throw new Error("Close a trade that has no open tick.");
+        }
+        if (n.direction() == direction) {
+            throw new Error("Close trade at wrong direction.");
         }
         n.close(tick);
         write();

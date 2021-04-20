@@ -7,12 +7,18 @@ public class TradeRecord {
     private Tick open;
     private Tick close;
     private final Direction d;
+    private final long q;
 
-    public TradeRecord(Direction direction) {
+    public TradeRecord(Direction direction, long quantity) {
         if (direction != Direction.BUY && direction != Direction.SELL) {
             throw new Error("Invalid direction for open trade: " + direction + ".");
         }
         d = direction;
+        q = quantity;
+    }
+
+    public long quantity() {
+        return q;
     }
 
     public void open(Tick tick) {
