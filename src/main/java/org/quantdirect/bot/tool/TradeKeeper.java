@@ -60,16 +60,16 @@ public class TradeKeeper {
         open(tick, Direction.SELL, quantity);
     }
 
-    public synchronized void sc(Tick tick, Direction direction) {
+    public synchronized void sc(Tick tick) {
         TOOLS.log("SC/" + TOOLS.formatDouble(tick.getAskPrice()) + "/" +
                   TOOLS.formatDouble(tick.getBidPrice()), this);
-        close(tick, direction);
+        close(tick, Direction.SELL);
     }
 
-    public synchronized void bc(Tick tick, Direction direction) {
+    public synchronized void bc(Tick tick) {
         TOOLS.log("BC/" + TOOLS.formatDouble(tick.getAskPrice()) + "/" +
                   TOOLS.formatDouble(tick.getBidPrice()), this);
-        close(tick, direction);
+        close(tick, Direction.BUY);
     }
 
     private void open(Tick tick, Direction direction, long quantity) {
