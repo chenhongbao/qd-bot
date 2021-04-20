@@ -2,11 +2,11 @@ package org.quantdirect.bot.tool;
 
 import org.quantdirect.bot.market.Tick;
 
-class TickMinute {
+public class TickMinute {
     private Tick t;
     private long pastMin;
 
-    TickMinute(Tick tick, long past) {
+    public TickMinute(Tick tick, long past) {
         if (tick == null) {
             throw new Error("Tick param null.");
         }
@@ -14,19 +14,19 @@ class TickMinute {
         pastMin = past;
     }
 
-    Tick tick() {
+    public Tick tick() {
         return t;
     }
 
-    void tick(Tick tick) {
+    public void tick(Tick tick) {
         t = tick;
     }
 
-    long minutes() {
+    public long minutes() {
         return pastMin;
     }
 
-    void minutes(long m) {
+    public void minutes(long m) {
         pastMin = m;
     }
 }

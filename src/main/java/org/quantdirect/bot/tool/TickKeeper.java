@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TickKeeper {
+public class TickKeeper {
 
     private final static String fn = "ticks";
     private final Map<Integer, TickMinute> ticks;
@@ -22,32 +22,32 @@ class TickKeeper {
     private TickMinute open;
     private TickMinute close;
 
-    TickKeeper() {
+    public TickKeeper() {
         ticks = new ConcurrentHashMap<>();
         read();
     }
 
-    void open(Tick tick) {
+    public void open(Tick tick) {
         open = new TickMinute(tick, 0);
     }
 
-    TickMinute open() {
+    public TickMinute open() {
         return open;
     }
 
-    void close(Tick tick) {
+    public void close(Tick tick) {
         close = new TickMinute(tick, 0);
     }
 
-    TickMinute close() {
+    public TickMinute close() {
         return close;
     }
 
-    TickMinute get(Integer key) {
+    public TickMinute get(Integer key) {
         return ticks.get(key);
     }
 
-    TickMinute update(Tick tick) {
+    public TickMinute update(Tick tick) {
         updateMinutes(tick);
         return updateTick(tick);
     }
@@ -77,7 +77,7 @@ class TickKeeper {
         time = tick.getUpdateTime();
     }
 
-    List<TickMinute> timeSortedTicks() {
+    public List<TickMinute> timeSortedTicks() {
         var r = new LinkedList<>(ticks.values());
         r.sort((o1, o2) -> o2.tick().getTimeStamp().compareTo(o1.tick().getTimeStamp()));
         return r;

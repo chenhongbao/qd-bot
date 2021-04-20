@@ -15,23 +15,23 @@ public class TradeRecord {
         d = direction;
     }
 
-    void open(Tick tick) {
+    public void open(Tick tick) {
         open = tick;
     }
 
-    void close(Tick tick) {
+    public void close(Tick tick) {
         close = tick;
     }
 
-    Tick open() {
+    public Tick open() {
         return open;
     }
 
-    Tick close() {
+    public Tick close() {
         return close;
     }
 
-    Direction direction() {
+    public Direction direction() {
         return d;
     }
 }
