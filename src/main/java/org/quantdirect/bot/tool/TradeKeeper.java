@@ -102,6 +102,7 @@ public class TradeKeeper {
         var n = new TradeRecord(direction);
         n.open(tick);
         records.addFirst(n);
+        write();
     }
 
     private void close(Tick tick, long quantity) {
