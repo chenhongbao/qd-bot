@@ -24,7 +24,7 @@ public class TickKeeper {
 
     public TickKeeper() {
         ticks = new ConcurrentHashMap<>();
-        read();
+        read(fn);
     }
 
     public void open(Tick tick) {
@@ -58,7 +58,7 @@ public class TickKeeper {
         if (prev != null && tick.getTimeStamp().isBefore(prev.tick().getTimeStamp())) {
             throw new Error("Current update time is before prev.");
         }
-        write();
+        write(fn);
         return prev;
     }
 
@@ -87,17 +87,17 @@ public class TickKeeper {
         return p.intValue();
     }
 
-    private void write() {
+    public void write(String file) {
         var str = TOOLS.json().to(ticks);
-        try (FileWriter fw = new FileWriter(fn, false)) {
+        try (FileWriter fw = new FileWriter(file, false)) {
             fw.write(str);
         } catch (IOException e) {
             throw new Error(e);
         }
     }
 
-    private void read() {
-        var f = new File(fn);
+    public void read(String file) {
+        var f = new File(file);
         if (!f.exists()) {
             return;
         } else {

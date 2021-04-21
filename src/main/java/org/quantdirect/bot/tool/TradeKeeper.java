@@ -105,7 +105,7 @@ public class TradeKeeper {
         var n = new TradeRecord(direction, quantity);
         n.open(tick);
         records.addFirst(n);
-        write();
+        write(fn);
     }
 
     private void close(Tick tick, Direction direction) {
@@ -145,11 +145,11 @@ public class TradeKeeper {
             throw new Error("Close trade at wrong direction.");
         }
         n.close(tick);
-        write();
+        write(fn);
     }
 
-    private void write() {
-        try (FileWriter fw = new FileWriter(fn, false)) {
+    public void write(String file) {
+        try (FileWriter fw = new FileWriter(file, false)) {
             var str = TOOLS.json().to(records);
             fw.write(str);
         } catch (IOException e) {
