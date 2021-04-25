@@ -19,10 +19,12 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     private final Condition cond;
     private final ExecutorService es;
     private boolean valid;
+    private boolean connected;
     private int ref;
 
     CtpTraderSpi(CtpTrader trader) {
         valid = false;
+        connected= false;
         t = trader;
         ref = 0;
         lck = new ReentrantLock();
@@ -37,6 +39,13 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         return r;
     }
 
+    boolean isConnected() {
+        return connected;
+    }
+
+    void setConnected(boolean b) {
+        connected = b;
+    }
 
     private void callOrder(Order order) {
         var l = listeners.get(order.getReference());
@@ -127,11 +136,12 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
 
     @Override
     public void OnFrontConnected() {
-        t.authenticate();
+        setConnected(true);
     }
 
     @Override
     public void OnFrontDisconnected(int nReason) {
+        setConnected(false);
         setAvailability(false);
         t.setTradingDay(null);
     }
@@ -142,6 +152,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Authentication failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
+            setAvailability(false);
         } else {
             t.login();
         }
@@ -153,6 +164,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Login failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
+            setAvailability(false);
         } else {
             try {
                 ref = Integer.parseInt(pRspUserLogin.getMaxOrderRef());
@@ -171,6 +183,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Confirm settlement failed(" + pRspInfo.getErrorID() + "), " +
                       pRspInfo.getErrorMsg() + ".", this);
+            setAvailability(false);
         } else {
             setAvailability(true);
         }
@@ -227,7 +240,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
         callOrder(createCommonOrder(pInputOrder, pRspInfo));
     }
 
-    boolean getAvailability() {
+    boolean isAvailable() {
         return valid;
     }
 

@@ -7,7 +7,8 @@ import org.quantdirect.bot.tool.TOOLS;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -15,6 +16,7 @@ class CtpTrader extends Trader {
     private final CtpTraderConfiguration cfg;
     private final CThostFtdcTraderApi api;
     private final CtpTraderSpi spi;
+    private final Timer tmr;
     private LocalDate tradingDay;
 
     CtpTrader(String flowPath) throws TimeoutException, IOException {
@@ -22,6 +24,7 @@ class CtpTrader extends Trader {
         cfg = TOOLS.json().from(new File("trader.json"), CtpTraderConfiguration.class);
         api = CThostFtdcTraderApi.CreateFtdcTraderApi(flowPath);
         spi = new CtpTraderSpi(this);
+        tmr = new Timer();
         refresh();
     }
 
@@ -34,6 +37,7 @@ class CtpTrader extends Trader {
 
     @Override
     public void buyOpen(String instrumentId, String exchangeId, double price, int quantity, TradeListener listener) {
+        ensureAvailability();
         var c = createCommonOrder(instrumentId, exchangeId, price, quantity, listener);
         c.setCombOffsetFlag(String.valueOf(CtpTraderFlags.THOST_FTDC_OF_Open));
         c.setDirection(CtpTraderFlags.THOST_FTDC_D_Buy);
@@ -53,6 +57,7 @@ class CtpTrader extends Trader {
 
     @Override
     public void buyClose(String instrumentId, String exchangeId, double price, int quantity, boolean today, TradeListener listener) {
+        ensureAvailability();
         var c = createCommonOrder(instrumentId, exchangeId, price, quantity, listener);
         c.setCombOffsetFlag(closeOffset(today));
         c.setDirection(CtpTraderFlags.THOST_FTDC_D_Buy);
@@ -72,6 +77,7 @@ class CtpTrader extends Trader {
 
     @Override
     public void sellOpen(String instrumentId, String exchangeId, double price, int quantity, TradeListener listener) {
+        ensureAvailability();
         var c = createCommonOrder(instrumentId, exchangeId, price, quantity, listener);
         c.setCombOffsetFlag(String.valueOf(CtpTraderFlags.THOST_FTDC_OF_Open));
         c.setDirection(CtpTraderFlags.THOST_FTDC_D_Sell);
@@ -91,6 +97,7 @@ class CtpTrader extends Trader {
 
     @Override
     public void sellClose(String instrumentId, String exchangeId, double price, int quantity, boolean today, TradeListener listener) {
+        ensureAvailability();
         var c = createCommonOrder(instrumentId, exchangeId, price, quantity, listener);
         c.setCombOffsetFlag(closeOffset(today));
         c.setDirection(CtpTraderFlags.THOST_FTDC_D_Sell);
@@ -103,7 +110,7 @@ class CtpTrader extends Trader {
 
     @Override
     public boolean isAvailable() {
-        return spi.getAvailability();
+        return spi.isAvailable();
     }
 
     @Override
@@ -116,6 +123,11 @@ class CtpTrader extends Trader {
     }
 
     private void refresh() throws TimeoutException {
+        startApi();
+        startTimer();
+    }
+
+    private void startApi() throws TimeoutException {
         api.RegisterSpi(spi);
         api.SubscribePrivateTopic(THOST_TE_RESUME_TYPE.THOST_TERT_QUICK);
         api.SubscribePublicTopic(THOST_TE_RESUME_TYPE.THOST_TERT_QUICK);
@@ -123,8 +135,39 @@ class CtpTrader extends Trader {
             api.RegisterFront(addr);
         });
         api.Init();
-        spi.joinStartup(15, TimeUnit.SECONDS);
+        joinStartup();
         TOOLS.log(CThostFtdcTraderApi.GetApiVersion(), this);
+    }
+
+    private void startTimer() {
+        final var ms = 15 * TimeUnit.SECONDS.toMillis(15);
+        tmr.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    ensureAvailability();
+                } catch (Throwable ignored) {
+                }
+            }
+        }, ms, ms);
+    }
+
+    private void ensureAvailability() {
+        if (!spi.isConnected()) {
+            throw new Error("Trader is not connected.");
+        }
+        if (!spi.isAvailable()) {
+            authenticate();
+            try {
+                joinStartup();
+            } catch (TimeoutException e) {
+                throw new Error("Trader not available. " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void joinStartup() throws TimeoutException {
+        spi.joinStartup(15, TimeUnit.SECONDS);
     }
 
     void authenticate() {
