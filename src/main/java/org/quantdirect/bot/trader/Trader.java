@@ -11,7 +11,7 @@ public abstract class Trader {
 
     private static CtpTrader t;
 
-    public static synchronized Trader createCtp(String flowPath) throws TimeoutException, IOException {
+    public static synchronized Trader createCtp(String flowPath) throws IOException {
         if (t == null) {
             ThostFtdcCtpApi.install();
             var path = TOOLS.validateFlowPath(flowPath);

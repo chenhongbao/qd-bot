@@ -19,7 +19,7 @@ class CtpTrader extends Trader {
     private final Timer tmr;
     private LocalDate tradingDay;
 
-    CtpTrader(String flowPath) throws TimeoutException, IOException {
+    CtpTrader(String flowPath) throws IOException {
         TOOLS.mkdir(flowPath);
         cfg = TOOLS.json().from(new File("trader.json"), CtpTraderConfiguration.class);
         api = CThostFtdcTraderApi.CreateFtdcTraderApi(flowPath);
@@ -122,12 +122,12 @@ class CtpTrader extends Trader {
         tradingDay = day;
     }
 
-    private void refresh() throws TimeoutException {
+    private void refresh() {
         startApi();
         startTimer();
     }
 
-    private void startApi() throws TimeoutException {
+    private void startApi() {
         api.RegisterSpi(spi);
         api.SubscribePrivateTopic(THOST_TE_RESUME_TYPE.THOST_TERT_QUICK);
         api.SubscribePublicTopic(THOST_TE_RESUME_TYPE.THOST_TERT_QUICK);
@@ -135,7 +135,6 @@ class CtpTrader extends Trader {
             api.RegisterFront(addr);
         });
         api.Init();
-        joinStartup();
         TOOLS.log(CThostFtdcTraderApi.GetApiVersion(), this);
     }
 
@@ -149,7 +148,7 @@ class CtpTrader extends Trader {
                 } catch (Throwable ignored) {
                 }
             }
-        }, ms, ms);
+        }, ms / 3, ms);
     }
 
     private void ensureAvailability() {

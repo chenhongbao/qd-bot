@@ -33,8 +33,6 @@ public class TradeKeeper {
     private Trader create() {
         try {
             return Trader.createCtp("trader/");
-        } catch (TimeoutException e) {
-            throw new Error("Trader connection timeout.", e);
         } catch (IOException e) {
             throw new Error("Flow files error.", e);
         }
