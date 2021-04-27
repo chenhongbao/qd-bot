@@ -250,7 +250,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         lck.lock();
         try {
             if (!cond.await(timeout, unit)) {
-                throw new TimeoutException("Trader start timeout.");
+                throw new TimeoutException("Market start timeout.");
             }
         } catch (InterruptedException e) {
             TOOLS.log(e, this);
