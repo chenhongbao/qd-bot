@@ -118,10 +118,10 @@ public class TradeKeeper {
         var d = records.getFirst().direction();
         if (d == Direction.BUY) {
             trader.sellClose(tick.getInstrumentId(), tick.getExchangeId(),
-                    tick.getBidPrice(), (int)quantity, true, new PrivateTraderListener());
+                    tick.getLowerLimitPrice(), (int)quantity, true, new PrivateTraderListener());
         } else if (d == Direction.SELL) {
             trader.buyClose(tick.getInstrumentId(), tick.getExchangeId(),
-                    tick.getAskPrice(), (int)quantity, true, new PrivateTraderListener());
+                    tick.getUpperLimitPrice(), (int)quantity, true, new PrivateTraderListener());
         } else {
             throw new Error("Invalid direction for open trade: " + d + ".");
         }
