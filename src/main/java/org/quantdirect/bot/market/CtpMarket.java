@@ -33,7 +33,7 @@ class CtpMarket extends Market {
             api.RegisterFront(addr);
         });
         api.Init();
-        spi.joinStartup(15, TimeUnit.SECONDS);
+        // It will try connecting thr fronts before success.
         TOOLS.log(CThostFtdcMdApi.GetApiVersion(), this);
     }
 

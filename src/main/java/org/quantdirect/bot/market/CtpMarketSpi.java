@@ -173,7 +173,6 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
                       pRspInfo.getErrorMsg() + ".", this);
             callError(pRspInfo.getErrorID(), pRspInfo.getErrorMsg());
         } else {
-            wakeStartup();
             m.setTradingDay(TOOLS.toDay(pRspUserLogin.getTradingDay()));
             callLogin(m);
         }
@@ -244,28 +243,6 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
 
     private String toTickId(Tick self, LocalDateTime updateTime) {
         return Long.toString(updateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli()) + self.hashCode();
-    }
-
-    void joinStartup(int timeout, TimeUnit unit) throws TimeoutException {
-        lck.lock();
-        try {
-            if (!cond.await(timeout, unit)) {
-                throw new TimeoutException("Market start timeout.");
-            }
-        } catch (InterruptedException e) {
-            TOOLS.log(e, this);
-        } finally {
-            lck.unlock();
-        }
-    }
-
-    private void wakeStartup() {
-        lck.lock();
-        try {
-            cond.signalAll();
-        } finally {
-            lck.unlock();
-        }
     }
 
     void joinSubscription(String instrumentId) {
