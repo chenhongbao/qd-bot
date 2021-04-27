@@ -139,7 +139,7 @@ class CtpTrader extends Trader {
     }
 
     private void startTimer() {
-        final var ms = 15 * TimeUnit.SECONDS.toMillis(15);
+        final var ms = TimeUnit.SECONDS.toMillis(15);
         tmr.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
