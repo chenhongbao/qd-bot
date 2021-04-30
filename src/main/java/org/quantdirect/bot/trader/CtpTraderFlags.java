@@ -11,14 +11,20 @@ class CtpTraderFlags {
     static final char THOST_FTDC_D_Sell = '1';
     static final char THOST_FTDC_OF_Open = '0';
     static final char THOST_FTDC_OF_Close = '1';
+    static final char THOST_FTDC_OF_ForceClose = '2';
     static final char THOST_FTDC_OF_CloseToday = '3';
     static final char THOST_FTDC_OF_CloseYesterday = '4';
+    static final char THOST_FTDC_OF_ForceOff = '5';
+    static final char THOST_FTDC_OF_LocalForceClose = '6';
     static final char THOST_FTDC_OST_AllTraded = '0';
     static final char THOST_FTDC_OST_PartTradedQueueing = '1';
     static final char THOST_FTDC_OST_PartTradedNotQueueing = '2';
     static final char THOST_FTDC_OST_NoTradeQueueing = '3';
     static final char THOST_FTDC_OST_NoTradeNotQueueing = '4';
     static final char THOST_FTDC_OST_Canceled = '5';
+    static final char THOST_FTDC_OST_Unknown ='a';
+    static final char THOST_FTDC_OST_NotTouched = 'b';
+    static final char THOST_FTDC_OST_Touched = 'c';
 
     static String stringifyDirection(char direction) {
         switch (direction) {
@@ -37,10 +43,16 @@ class CtpTraderFlags {
                 return "Open";
             case THOST_FTDC_OF_Close:
                 return "Close";
+            case THOST_FTDC_OF_ForceClose:
+                return "ForceClose";
             case THOST_FTDC_OF_CloseToday:
                 return "CloseToday";
             case THOST_FTDC_OF_CloseYesterday:
                 return "CloseYesterday";
+            case THOST_FTDC_OF_ForceOff:
+                return "ForceOff";
+            case THOST_FTDC_OF_LocalForceClose:
+                return "LocalForceClose";
             default:
                 throw new Error("Illegal offset: " + offset + ".");
         }
@@ -60,6 +72,12 @@ class CtpTraderFlags {
                 return "NoTradeNotQueueing";
             case THOST_FTDC_OST_Canceled:
                 return "Canceled";
+            case THOST_FTDC_OST_Unknown:
+                return "Unknown";
+            case THOST_FTDC_OST_NotTouched:
+                return "NotTouched";
+            case THOST_FTDC_OST_Touched:
+                return "Touched";
             default:
                 throw new Error("Illegal order status: " + status + ".");
         }
