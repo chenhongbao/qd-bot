@@ -80,7 +80,7 @@ public class TOOLS {
             return LocalDate.parse(tradingDay, dayFmt);
         } catch (Throwable throwable) {
             log(throwable, TOOLS.class);
-            return null;
+            return LocalDate.now();
         }
     }
 
@@ -96,7 +96,7 @@ public class TOOLS {
             return r;
         } catch (Throwable throwable) {
             log(throwable, TOOLS.class);
-            return null;
+            return LocalDateTime.now();
         }
     }
 
@@ -106,7 +106,7 @@ public class TOOLS {
             return time.plus(Duration.ofMillis(updateMillisec));
         } catch (Throwable throwable) {
             log(throwable, TOOLS.class);
-            return null;
+            return LocalTime.now();
         }
     }
 
