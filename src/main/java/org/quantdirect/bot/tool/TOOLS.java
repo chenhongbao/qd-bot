@@ -3,6 +3,7 @@ package org.quantdirect.bot.tool;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.quantdirect.bot.market.Tick;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -60,6 +61,18 @@ public class TOOLS {
         } else {
             return path;
         }
+    }
+
+    public static boolean isClosed(Tick tick) {
+        return in(tick.getClosePrice(), tick.getLowerLimitPrice(), tick.getUpperLimitPrice());
+    }
+
+    public static boolean isSettled(Tick tick) {
+        return in(tick.getSettlePrice(), tick.getLowerLimitPrice(), tick.getUpperLimitPrice());
+    }
+
+    private static boolean in(double value, double startInclusive, double endInclusive) {
+        return startInclusive <= value && value <= endInclusive;
     }
 
     public static LocalDate toDay(String tradingDay) {
