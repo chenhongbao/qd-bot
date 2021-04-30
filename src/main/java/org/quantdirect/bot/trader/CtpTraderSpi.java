@@ -11,7 +11,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class CtpTraderSpi extends CThostFtdcTraderSpi {
+class CtpTraderSpi extends CtpTraderSpiBase {
 
     private final Map<String, TradeListener> listeners;
     private final CtpTrader t;
@@ -135,19 +135,19 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     }
 
     @Override
-    public void OnFrontConnected() {
+    public void callConnected() {
         setConnected(true);
     }
 
     @Override
-    public void OnFrontDisconnected(int nReason) {
+    public void callDisconnected(int nReason) {
         setConnected(false);
         setAvailability(false);
         t.setTradingDay(null);
     }
 
     @Override
-    public void OnRspAuthenticate(CThostFtdcRspAuthenticateField pRspAuthenticateField,
+    public void callAuth(CThostFtdcRspAuthenticateField pRspAuthenticateField,
             CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Authentication failed(" + pRspInfo.getErrorID() + "), " +
@@ -159,7 +159,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     }
 
     @Override
-    public void OnRspUserLogin(CThostFtdcRspUserLoginField pRspUserLogin,
+    public void callLogin(CThostFtdcRspUserLoginField pRspUserLogin,
             CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Login failed(" + pRspInfo.getErrorID() + "), " +
@@ -177,7 +177,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     }
 
     @Override
-    public void OnRspSettlementInfoConfirm(
+    public void callSettlement(
             CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
             CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
@@ -190,7 +190,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     }
 
     @Override
-    public void OnRspUserLogout(CThostFtdcUserLogoutField pUserLogout,
+    public void callLogout(CThostFtdcUserLogoutField pUserLogout,
             CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Logout failed." + pRspInfo.getErrorMsg() + "(" + pRspInfo.getErrorID() + ").", this);
@@ -200,7 +200,7 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     }
 
     @Override
-    public void OnRspError(CThostFtdcRspInfoField pRspInfo, int nRequestID,
+    public void callError(CThostFtdcRspInfoField pRspInfo, int nRequestID,
             boolean bIsLast) {
         if (pRspInfo != null) {
             TOOLS.log("Error." + pRspInfo.getErrorMsg() + "(" + pRspInfo.getErrorID() + ").", this);
@@ -209,39 +209,31 @@ class CtpTraderSpi extends CThostFtdcTraderSpi {
     }
 
     @Override
-    public void OnRtnOrder(CThostFtdcOrderField pOrder) {
+    public void callOrder(CThostFtdcOrderField pOrder) {
         callOrder(createCommonOrder(pOrder));
     }
 
     @Override
-    public void OnRtnTrade(CThostFtdcTradeField pTrade) {
+    public void callTrade(CThostFtdcTradeField pTrade) {
         callTrade(createCommonTrade(pTrade));
     }
 
-
-    private void printError(CThostFtdcRspInfoField pRspInfo) {
-        if (pRspInfo != null) {
-            TOOLS.log("Order failed. " + pRspInfo.getErrorMsg() + "(" + pRspInfo.getErrorID() + ").",
-                    this);
-        }
-    }
-
     @Override
-    public void OnErrRtnOrderInsert(CThostFtdcInputOrderField pInputOrder,
+    public void callRtnOrder(CThostFtdcInputOrderField pInputOrder,
             CThostFtdcRspInfoField pRspInfo) {
-        printError(pRspInfo);
-        callOrder(createCommonOrder(pInputOrder, pRspInfo));
-    }
-
-    @Override
-    public void OnRspOrderInsert(CThostFtdcInputOrderField pInputOrder,
-            CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         printError(pRspInfo);
         callOrder(createCommonOrder(pInputOrder, pRspInfo));
     }
 
     boolean isAvailable() {
         return valid;
+    }
+
+    private void printError(CThostFtdcRspInfoField pRspInfo) {
+        if (pRspInfo != null) {
+            TOOLS.log("Order failed. " + pRspInfo.getErrorMsg() + "(" + pRspInfo.getErrorID() + ").",
+                    this);
+        }
     }
 
     private void setAvailability(boolean b) {

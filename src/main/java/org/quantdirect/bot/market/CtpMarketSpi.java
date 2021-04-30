@@ -12,7 +12,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class CtpMarketSpi extends CThostFtdcMdSpi {
+class CtpMarketSpi extends CtpMarketSpiBase {
     private final CtpMarket m;
     private final Queue<MarketListener> ml;
     private final Lock lck;
@@ -48,6 +48,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
         subs.remove(instrumentId);
     }
 
+    @SuppressWarnings("unused")
     void callCandle(int fewMinutes, MarketSource source, Candle... candles) {
         if (candles.length == 0) {
             return;
@@ -154,19 +155,19 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     }
 
     @Override
-    public void OnFrontConnected() {
+    public void callConnected() {
         m.login();
     }
 
     @Override
-    public void OnFrontDisconnected(int nReason) {
+    public void callDisconnected(int nReason) {
         TOOLS.log("Market disconnected " + nReason + ".", this);
         m.setTradingDay(null);
         callDisconnect(nReason);
     }
 
     @Override
-    public void OnRspUserLogin(CThostFtdcRspUserLoginField pRspUserLogin,
+    public void callLogin(CThostFtdcRspUserLoginField pRspUserLogin,
             CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Login failed(" + pRspInfo.getErrorID() + "), " +
@@ -179,7 +180,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     }
 
     @Override
-    public void OnRspError(CThostFtdcRspInfoField pRspInfo, int nRequestID,
+    public void callError(CThostFtdcRspInfoField pRspInfo, int nRequestID,
             boolean bIsLast) {
         TOOLS.log("Error(" + pRspInfo.getErrorID() + "), " +
                   pRspInfo.getErrorMsg() + ".", this);
@@ -187,7 +188,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     }
 
     @Override
-    public void OnRspSubMarketData(CThostFtdcSpecificInstrumentField pSpecificInstrument,
+    public void callSubMd(CThostFtdcSpecificInstrumentField pSpecificInstrument,
             CThostFtdcRspInfoField pRspInfo, int nRequestID, boolean bIsLast) {
         if (pRspInfo != null && pRspInfo.getErrorID() != 0) {
             TOOLS.log("Subscription failed(" + pRspInfo.getErrorID() + "), " +
@@ -201,7 +202,7 @@ class CtpMarketSpi extends CThostFtdcMdSpi {
     }
 
     @Override
-    public void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField pDepthMarketData) {
+    public void callMd(CThostFtdcDepthMarketDataField pDepthMarketData) {
         callTick(toTick(pDepthMarketData));
     }
 
